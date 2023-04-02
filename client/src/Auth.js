@@ -3,6 +3,10 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 import { auth as firebaseuiAuth } from "firebaseui";
 import "firebaseui/dist/firebaseui.css";
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from './firebaseConfig';
+import RoomForm from "./RoomForm";
+
 
 const uiConfig = {
   signInFlow: "popup",
@@ -28,8 +32,19 @@ const Auth = () => {
       uiInstance = new firebaseuiAuth.AuthUI(auth);
     }
 
-    const unregisterAuthObserver = onAuthStateChanged(auth, (user) => {
+    const unregisterAuthObserver = onAuthStateChanged(auth, async (user) => {
       setIsSignedIn(!!user);
+
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnapshot = await getDoc(userRef);
+
+        if (!userSnapshot.exists()) {
+          await setDoc(userRef, {
+            rooms: [],
+          });
+        }
+      }
     });
 
     uiInstance.start(signInContainerRef.current, uiConfig);
@@ -53,8 +68,18 @@ const Auth = () => {
     <div>
       <h1>ProtoTable</h1>
       <p>You are now signed in!</p>
+       <RoomForm onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} />
     </div>
   );
 };
+
+const handleCreateRoom = (password) => {
+  // Logic to create a room with the provided password
+};
+
+const handleJoinRoom = (password) => {
+  // Logic to join a room with the provided password
+};
+
 
 export default Auth;
