@@ -1,64 +1,50 @@
-import React, { useState } from 'react';
-import { collection, doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from './firebaseConfig';
-import { getAuth } from 'firebase/auth';
-import firebase from 'firebase/compat/app';
+import { useState } from "react";
+import { db, auth } from "./firebaseConfig";
+import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
-const RoomForm = () => {
-  const [roomName, setRoomName] = useState('');
-  const [roomPassword, setRoomPassword] = useState('');
+function RoomForm() {
+  const [roomName, setRoomName] = useState("");
+  const [roomPassword, setRoomPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
+    setErrorMessage("");
 
-    if (currentUser) {
-      // Generate a unique room ID
-      const roomRef = doc(collection(db, 'rooms'));
-      const roomId = roomRef.id;
+    // Create new room document with a unique ID
+    const roomRef = await addDoc(collection(db, "rooms"), { name: roomName, password: roomPassword });
 
-      // Store the room data in the 'rooms' collection
-      await setDoc(roomRef, {
-        id: roomId,
-        name: roomName,
-        password: roomPassword,
+    // Update user document with new room ID
+    const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+    if (userDoc.exists()) {
+      await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        rooms: arrayUnion(roomRef.id),
       });
-
-      // Add the room ID to the user's 'rooms' array
-      await updateDoc(doc(db, 'users', currentUser.uid), {
-        rooms: firebase.firestore.FieldValue.arrayUnion(roomId),
-      });
-
-      alert('Room created successfully');
     } else {
-      alert('Please sign in first');
+      console.log("No such document!");
     }
+
+    navigate(`/room/${roomRef.id}`);
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="roomName">Room Name:</label>
-        <input
-          type="text"
-          id="roomName"
-          value={roomName}
-          onChange={(e) => setRoomName(e.target.value)}
-        />
-      </div>
-      <div>
-        <label htmlFor="roomPassword">Room Password:</label>
-        <input
-          type="password"
-          id="roomPassword"
-          value={roomPassword}
-          onChange={(e) => setRoomPassword(e.target.value)}
-        />
-      </div>
-      <button type="submit">Create Room</button>
+      <h2>Create a new room</h2>
+      {errorMessage && <p className="error">{errorMessage}</p>}
+      <label htmlFor="room-name">Room name:</label>
+      <input type="text" id="room-name" value={roomName} onChange={(e) => setRoomName(e.target.value)} />
+      <label htmlFor="room-password">Room password:</label>
+      <input
+        type="password"
+        id="room-password"
+        value={roomPassword}
+        onChange={(e) => setRoomPassword(e.target.value)}
+      />
+      <button type="submit">Create room</button>
     </form>
   );
-};
+}
 
 export default RoomForm;
