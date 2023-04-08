@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebaseConfig";
+import { FirebaseContext } from "./firebaseConfig";
 import { auth as firebaseuiAuth } from "firebaseui";
 import "firebaseui/dist/firebaseui.css";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from './firebaseConfig';
 import RoomForm from "./RoomForm";
 
 
@@ -26,6 +25,7 @@ let uiInstance = null;
 const Auth = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const signInContainerRef = useRef(null);
+  const { auth, db } = useContext(FirebaseContext);
 
   useEffect(() => {
     if (!uiInstance) {
@@ -52,7 +52,7 @@ const Auth = () => {
     return () => {
       unregisterAuthObserver();
     };
-  }, []);
+  }, [auth, db]);
 
   if (!isSignedIn) {
     return (

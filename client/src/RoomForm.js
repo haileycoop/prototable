@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { db, auth } from "./firebaseConfig";
+import React, { useState, useContext } from "react";
+// import { db, auth } from "./firebaseConfig";
+import { FirebaseContext } from "./firebaseConfig";
 import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, where, query, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 function RoomForm() {
+  const { auth, db } = useContext(FirebaseContext);
   const [roomName, setRoomName] = useState("");
   const [roomPassword, setRoomPassword] = useState("");
   const [joinRoomId, setJoinRoomId] = useState("");

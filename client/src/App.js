@@ -2,6 +2,7 @@
 import './App.css';
 import React from 'react';
 import Auth from "./Auth";
+import FirebaseProvider from './firebaseConfig';
 import RoomForm from './RoomForm';
 import Room from './components/Room';
 import {
@@ -12,6 +13,7 @@ import {
 
 function App() {
   return (
+    <FirebaseProvider>
     <div className="App">
       <Router>
         <Routes>
@@ -23,7 +25,8 @@ function App() {
           <Route path="/room/:id" element={<Room />} />
         </Routes>
       </Router>
-    </div>
+      </div>
+    </FirebaseProvider>
   );
 }
 

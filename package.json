@@ -23,6 +23,7 @@
     "firebase": "^9.19.1",
     "firebaseui": "^6.0.2",
     "react-firebaseui": "^6.0.0",
+    "react-redux-firebase": "^3.11.0",
     "react-router": "^6.10.0",
     "react-router-dom": "^6.10.0"
   },
