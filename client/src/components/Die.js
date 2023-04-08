@@ -1,22 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
+import "./die.css";
 
-const Die = () => {
+function Die() {
+  const [value, setValue] = useState(6);
+
   return (
-    <div style={{
-      position: "absolute",
-      left: "50%",
-      top: "50%",
-      transform: "translate(-50%, -50%)",
-      width: '50px',
-      height: '50px',
-      border: '2px solid black',
-      backgroundColor: 'white',
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "28px",
-      fontWeight: "bold"
-    }}></div>
+    <div 
+      className="die"
+      onClick={() => {
+        const newValue = Math.floor(Math.random() * 6) + 1;
+        setValue(newValue);
+      }}
+    >
+      {value}
+    </div>
   );
 }
 
