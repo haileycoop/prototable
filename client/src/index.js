@@ -1,50 +1,22 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
-import { ReactReduxFirebaseProvider } from 'react-redux-firebase';
-import { createFirestoreInstance } from 'redux-firestore';
-import { FirebaseProvider } from './firebaseConfig';
-import store from './store';
-import reportWebVitals from './reportWebVitals';
-import App from './App';
-import './index.css';
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+import { app } from "./firebaseConfig";
 
-// import * as firebase from 'firebase/app';
-// import 'firebase/auth';
-// import 'firebase/firestore';
-// import 'firebase/storage';
+function Root() {
+  const [firebaseReady, setFirebaseReady] = useState(false);
 
-// import App from './App';
-// import store from './store';
-// import firebaseConfig from './firebaseConfig';
+  useEffect(() => {
+    if (app) {
+      setFirebaseReady(true);
+    }
+  }, []);
 
+  return firebaseReady ? <App /> : <p>Loading...</p>;
+}
 
-//Initialize Firebase
-// firebase.initializeApp(firebaseConfig);
+// app.firestore().settings({
+//   cacheSizeBytes: app.firestore.CACHE_SIZE_UNLIMITED
+// });
 
-const rrfProps = {
-  config: {
-    userProfile: 'users',
-    useFirestoreForProfile: true,
-    enableLogging: false,
-  },
-  dispatch: store.dispatch,
-  createFirestoreInstance,
-};
-
-const root = document.getElementById('root');
-
-createRoot(root).render(
-<FirebaseProvider>
-  <Provider store={store}>
-    <ReactReduxFirebaseProvider {...rrfProps}>
-      <App />
-    </ReactReduxFirebaseProvider>
-  </Provider>
-</FirebaseProvider>
-);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+ReactDOM.render(<Root />, document.getElementById("root"));

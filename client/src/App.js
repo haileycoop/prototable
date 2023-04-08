@@ -1,8 +1,8 @@
-// import logo from './logo.svg';
+import { useEffect, useState } from "react";
+import { app } from "./firebaseConfig";
 import './App.css';
 import React from 'react';
 import Auth from "./Auth";
-import FirebaseProvider from './firebaseConfig';
 import RoomForm from './RoomForm';
 import Room from './components/Room';
 import {
@@ -12,21 +12,27 @@ import {
 } from "react-router-dom";
 
 function App() {
+  const [firebaseReady, setFirebaseReady] = useState(false);
+
+  useEffect(() => {
+    if (app) {
+      setFirebaseReady(true);
+    }
+  }, []);
+
   return (
-    <FirebaseProvider>
     <div className="App">
-      <Router>
-        <Routes>
+      {firebaseReady && <Router>
+        {firebaseReady && <Routes>
           <Route path="/" element={
             <Auth>
               {(signedIn) => signedIn && <RoomForm />}
             </Auth>
           } />
           <Route path="/room/:id" element={<Room />} />
-        </Routes>
-      </Router>
-      </div>
-    </FirebaseProvider>
+        </Routes>}
+      </Router>}
+    </div>
   );
 }
 

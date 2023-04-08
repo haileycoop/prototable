@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { FirebaseContext } from "./firebaseConfig";
+import { auth, db } from "./firebaseConfig";
 import { auth as firebaseuiAuth } from "firebaseui";
 import "firebaseui/dist/firebaseui.css";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -25,7 +25,6 @@ let uiInstance = null;
 const Auth = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const signInContainerRef = useRef(null);
-  const { auth, db } = useContext(FirebaseContext);
 
   useEffect(() => {
     if (!uiInstance) {
@@ -52,7 +51,7 @@ const Auth = () => {
     return () => {
       unregisterAuthObserver();
     };
-  }, [auth, db]);
+  }, []);
 
   if (!isSignedIn) {
     return (
@@ -68,18 +67,9 @@ const Auth = () => {
     <div>
       <h1>ProtoTable</h1>
       <p>You are now signed in!</p>
-       <RoomForm onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} />
+       <RoomForm />
     </div>
   );
 };
-
-const handleCreateRoom = (password) => {
-  // Logic to create a room with the provided password
-};
-
-const handleJoinRoom = (password) => {
-  // Logic to join a room with the provided password
-};
-
 
 export default Auth;
