@@ -24,6 +24,6 @@ const FirebaseProvider = ({ children }) => {
   );
 };
 
-export const FirebaseContext = createContext(null);
+export { FirebaseContext };
 
 export default FirebaseProvider;
