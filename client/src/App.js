@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { app } from "./firebaseConfig";
+import { app, auth, db } from "./firebaseConfig";
 import './App.css';
 import React from 'react';
 import Auth from "./Auth";
@@ -26,7 +26,7 @@ function App() {
         {firebaseReady && <Routes>
           <Route path="/" element={
             <Auth>
-              {(signedIn) => signedIn && <RoomForm />}
+              {(signedIn) => signedIn && <RoomForm auth={auth} db={db}/>}
             </Auth>
           } />
           <Route path="/room/:id" element={<Room />} />

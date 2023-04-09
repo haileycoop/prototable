@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { app, auth, db } from "./firebaseConfig";
 import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, where, query, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
-function RoomForm({ auth, db }) {
+function RoomForm() {
   const [roomName, setRoomName] = useState("");
   const [roomPassword, setRoomPassword] = useState("");
   const [joinRoomId, setJoinRoomId] = useState("");
@@ -14,52 +15,68 @@ function RoomForm({ auth, db }) {
     event.preventDefault();
     setErrorMessage("");
 
-    // Create new room document with a unique ID
-    const roomRef = await addDoc(collection(db, "rooms"), { name: roomName, password: roomPassword });
+    if (app) {
 
-    // Update user document with new room ID
-    const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-    if (userDoc.exists()) {
-      await updateDoc(doc(db, "users", auth.currentUser.uid), {
-        rooms: arrayUnion(roomRef.id),
-      });
+      const roomCollection = collection(db, "rooms");
+
+      // Create new room document with a unique ID
+      const roomRef = await addDoc(roomCollection, { name: roomName, password: roomPassword });
+
+      // Get a reference to the actual room document
+      const roomDoc = doc(db, "rooms", roomRef.id);
+
+      // Update user document with new room ID
+      const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+      if (userDoc.exists()) {
+        await updateDoc(doc(db, "users", auth.currentUser.uid), {
+          rooms: arrayUnion(roomDoc),
+        });
+      } else {
+        console.log("No such document!");
+      }
+
+      navigate(`/room/${roomRef.id}`);
     } else {
-      console.log("No such document!");
+      console.log("Firebase not initialized");
     }
-
-    navigate(`/room/${roomRef.id}`);
   };
 
   const handleJoinRoomSubmit = async (event) => {
     event.preventDefault();
     setErrorMessage("");
 
-    // Check if room with the given ID and password exists
-    const roomQuery = query(collection(db, "rooms"), where("password", "==", joinRoomPassword));
-    const querySnapshot = await getDocs(roomQuery);
-    let roomExists = false;
-    let roomId;
-    querySnapshot.forEach((doc) => {
-      if (doc.id === joinRoomId) {
-        roomExists = true;
-        roomId = doc.id;
-      }
-    });
+    if (app) {
+      const roomCollection = collection(db, "rooms");
 
-    // If room exists, update user document with new room ID
-    if (roomExists) {
-      const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-      if (userDoc.exists()) {
-        await updateDoc(doc(db, "users", auth.currentUser.uid), {
-          rooms: arrayUnion(roomId),
-        });
+      // Check if room with the given ID and password exists
+      const roomQuery = query(roomCollection, where("password", "==", joinRoomPassword));
+      const querySnapshot = await getDocs(roomQuery);
+      let roomExists = false;
+      let roomId;
+      querySnapshot.forEach((doc) => {
+        if (doc.id === joinRoomId) {
+          roomExists = true;
+          roomId = doc.id;
+        }
+      });
+
+      // If room exists, update user document with new room ID
+      if (roomExists) {
+        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+        if (userDoc.exists()) {
+          await updateDoc(doc(db, "users", auth.currentUser.uid), {
+            rooms: arrayUnion(roomId),
+          });
+        } else {
+          console.log("No such document!");
+        }
+
+        navigate(`/room/${roomId}`);
       } else {
-        console.log("No such document!");
+        setErrorMessage("Room with given ID and password does not exist.");
       }
-
-      navigate(`/room/${roomId}`);
     } else {
-      setErrorMessage("Room with given ID and password does not exist.");
+      console.log("Firebase not initialized");
     }
   };
 

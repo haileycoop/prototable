@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
-import { useFirestore } from 'react-redux-firebase';
 import { v4 as uuidv4 } from 'uuid';
 import { getDieValue } from "../helpers/DieHelpers";
 import { doc, collection } from 'firebase/firestore';
-import { useAuth } from 'reactfire';
 import "./die.css";
+import { auth, db } from '../firebaseConfig';
 
-const Die = ({ x,y }) => {
-  const firestore = useFirestore();
+const Die = ({ x, y }) => {
   const [value, setValue] = useState(6); // 6 is the default value for a die
   const [hovering, setHovering] = useState(false);
   const [control, setControl] = useState(null); // track which user is in control of the die
-
-  const auth = useAuth();
 
   //helper function to check which player is in control of the die
   const handleMouseEnter = () => {
@@ -23,7 +19,7 @@ const Die = ({ x,y }) => {
         setControl(currentUser.uid);
         console.log(`${currentUser.displayName} is in control of the die`);
       } else if (control !== currentUser.uid) {
-        const dieRef = doc(collection(firestore, 'dice'), uuidv4());
+        const dieRef = doc(collection(db, 'dice'), uuidv4());
         dieRef.set({ value, control });
         setControl(currentUser.uid);
         console.log(`${currentUser.displayName} is in control of the die`);
@@ -47,7 +43,7 @@ const Die = ({ x,y }) => {
     setValue(newValue);
     const currentUser = auth.currentUser;
     if (control === currentUser.uid) {
-      const dieRef = doc(collection(firestore, 'dice'), uuidv4());
+      const dieRef = doc(collection(db, 'dice'), uuidv4());
       dieRef.set({ value: newValue, control });
     }
   };
