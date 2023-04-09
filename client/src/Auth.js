@@ -12,7 +12,7 @@ const uiConfig = {
   signInOptions: [
     {
       provider: "password",
-      requireDisplayName: false,
+      requireDisplayName: true,
     },
   ],
   callbacks: {
