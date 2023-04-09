@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { getDieValue } from "../helpers/DieHelpers";
-import { doc, collection } from 'firebase/firestore';
+import { doc, collection, setDoc } from 'firebase/firestore';
 import "./die.css";
 import { auth, db } from '../firebaseConfig';
 
@@ -20,7 +20,7 @@ const Die = ({ x, y }) => {
         console.log(`${currentUser.displayName} is in control of the die`);
       } else if (control !== currentUser.uid) {
         const dieRef = doc(collection(db, 'dice'), uuidv4());
-        dieRef.set({ value, control });
+        setDoc(dieRef, { value, control });
         setControl(currentUser.uid);
         console.log(`${currentUser.displayName} is in control of the die`);
       }
@@ -44,7 +44,7 @@ const Die = ({ x, y }) => {
     const currentUser = auth.currentUser;
     if (control === currentUser.uid) {
       const dieRef = doc(collection(db, 'dice'), uuidv4());
-      dieRef.set({ value: newValue, control });
+      setDoc(dieRef, { value: newValue, control });
     }
   };
 
