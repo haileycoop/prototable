@@ -45,18 +45,17 @@ function RoomForm() {
     if (app) {
       // Check if room with the given ID and password exists
       const roomRef = ref(db, "rooms/" + joinRoomId);
-      onValue(roomRef, (snapshot) => {
+      onValue(roomRef, async (snapshot) => {
         const room = snapshot.val();
         if (room && room.password === joinRoomPassword) {
           // If room exists, update user document with new room ID
           const userDoc = ref(db, "users/" + auth.currentUser.uid);
-          onValue(userDoc, (snapshot) => {
-            const user = snapshot.val();
-            let rooms = user.rooms || [];
-            rooms.push(joinRoomId);
-            update(userDoc, { rooms: rooms });
-          });
-
+          const userSnapshot = await get(userDoc);
+          const user = userSnapshot.val();
+          if (user && user.rooms) {
+            const rooms = [...user.rooms, joinRoomId];
+            update(userDoc, { rooms });
+          }
           navigate("room/" + joinRoomId);
         } else {
           setErrorMessage("Room with given ID and password does not exist.");
