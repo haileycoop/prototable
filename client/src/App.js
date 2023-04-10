@@ -13,6 +13,7 @@ import {
 
 function App() {
   const [firebaseReady, setFirebaseReady] = useState(false);
+  const [roomId] = useState(null);
 
   useEffect(() => {
     if (app) {
@@ -29,7 +30,8 @@ function App() {
               {(signedIn) => signedIn && <RoomForm auth={auth} db={db}/>}
             </Auth>
           } />
-          <Route path="/room/:id" element={<Room />} />
+          <Route path="/" element={<RoomForm />} />
+          <Route path="/room/:roomId" element={<Room roomId={roomId} />} />
         </Routes>}
       </Router>}
     </div>

@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
 import { auth as firebaseuiAuth } from "firebaseui";
+import { ref, get, set } from "firebase/database"
 import "firebaseui/dist/firebaseui.css";
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import RoomForm from "./RoomForm";
 
 
@@ -35,11 +35,11 @@ const Auth = () => {
       setIsSignedIn(!!user);
 
       if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        const userSnapshot = await getDoc(userRef);
+        const userRef = ref(db, 'users/' + user.uid);
+        const userSnapshot = await get(userRef);
 
         if (!userSnapshot.exists()) {
-          await setDoc(userRef, {
+          await set(userRef, {
             rooms: [],
           });
         }
