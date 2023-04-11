@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
-import Box from './Box';
+import Die from './Die';
 
 const Room = ({userId}) => {
 
@@ -19,24 +19,24 @@ const Room = ({userId}) => {
 
   // Game piece management
 
-  const [boxData, setBoxData] = useState({});
+  const [dieData, setDieData] = useState({});
 
   useEffect(() => {
-    const boxRef = ref(db, `rooms/${roomId}/box`);
-    const unsubscribe = onValue(boxRef, (snapshot) => {
-      setBoxData(snapshot.val());
+    const dieRef = ref(db, `rooms/${roomId}/die`);
+    const unsubscribe = onValue(dieRef, (snapshot) => {
+      setDieData(snapshot.val());
     });
     return () => {
       unsubscribe();
     };
   }, [roomId]);
 
-  const handleBoxHover = () => {
-    update(ref(db, `rooms/${roomId}/box/isHovering`), { box: { isHovering: true }});
+  const handleDieHover = () => {
+    update(ref(db, `rooms/${roomId}/die/isHovering`), { die: { isHovering: true }});
   };
 
-  const handleBoxLeave = () => {
-    update(ref(db, `rooms/${roomId}/box/isHovering`), { box: { isHovering: false }});
+  const handleDieLeave = () => {
+    update(ref(db, `rooms/${roomId}/die/isHovering`), { die: { isHovering: false }});
   };
 
   // Render the room
@@ -55,8 +55,8 @@ const Room = ({userId}) => {
       <div
         className="table"
           style={{ width: '80%', height: '80%', backgroundColor: '#2c3e50', position: 'relative' }} >
-          {/* Spawn a box inside the table and pass in hover updates */},
-          <Box roomId={roomId} boxData={boxData} isHovered={boxData?.isHovering} handleHover={handleBoxHover} handleLeave={handleBoxLeave} />
+          {/* Spawn a die inside the table and pass in hover updates */},
+          <Die roomId={roomId} dieData={dieData} isHovered={dieData?.isHovering} handleHover={handleDieHover} handleLeave={handleDieLeave} />
       </div>
     </div>
   );
