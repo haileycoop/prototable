@@ -6,7 +6,6 @@ import { ref, get, set } from "firebase/database"
 import "firebaseui/dist/firebaseui.css";
 import RoomForm from "./RoomForm";
 
-
 const uiConfig = {
   signInFlow: "popup",
   signInOptions: [
@@ -35,7 +34,7 @@ const Auth = () => {
       setIsSignedIn(!!user);
 
       if (user) {
-        const userRef = ref(db, 'users/' + user.uid);
+        const userRef = ref(db, "users/" + user.uid);
         const userSnapshot = await get(userRef);
 
         if (!userSnapshot.exists()) {
@@ -53,6 +52,17 @@ const Auth = () => {
     };
   }, []);
 
+    const handleCreateUser = async (user) => {
+    const userRef = ref(db, "users/" + user.uid);
+    const userSnapshot = await get(userRef);
+
+    if (!userSnapshot.exists()) {
+      await set(userRef, {
+        rooms: [],
+      });
+    }
+  };
+
   if (!isSignedIn) {
     return (
       <div>
@@ -67,7 +77,7 @@ const Auth = () => {
     <div>
       <h1>ProtoTable</h1>
       <p>You are now signed in!</p>
-       <RoomForm />
+       <RoomForm userId={auth.currentUser.uid} onCreateUser={handleCreateUser} />
     </div>
   );
 };

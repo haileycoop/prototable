@@ -1,87 +1,74 @@
-import React, { useState, useEffect } from 'react';
-import { getDieValue } from "../helpers/DieHelpers";
-import { ref, push, onValue, update } from 'firebase/database';
-import "./die.css";
-import { auth, db } from '../firebaseConfig';
+import React, { useState, useEffect } from "react";
+import { ref, update } from "firebase/database";
+import { db } from "../firebaseConfig";
 
-const Die = ({ x, y }) => {
-  const [value, setValue] = useState(6); // 6 is the default value for a die
-  const [hovering, setHovering] = useState(false);
-  const [control, setControl] = useState(null); // track which user is in control of the die
+const Die = ({ value, sides, isCurrentPlayer, onRoll }) => {
+  const [isDragging, setIsDragging] = useState(false);
 
-  const [userId] = useState(null);
-
-  useEffect(() => {
-    const diceRef = ref(db, 'dice');
-  
-    const unsubscribe = onValue(diceRef, (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-          const dieData = childSnapshot.val();
-          const dieControl = dieData.control;
-          if (dieControl === userId) {
-            console.log('You are in control of the die');
-          } else {
-            console.log('Your opponent is in control of the die');
-          }
-        });
-      });
-
-      return () => {
-        unsubscribe();
-      };
-    }, [userId]);
-
-
-    //helper function to check which player is in control of the die
-    const handleMouseEnter = () => {
-      if (!hovering) {
-        setHovering(true);
-        const currentUser = auth.currentUser;
-        if (control === null) {
-          setControl(currentUser.uid);
-          console.log(`${currentUser.displayName} is in control of the die`);
-        } else if (control !== currentUser.uid) {
-          const dieRef = push(ref(db, 'dice'));
-          update(dieRef, { value, control });
-          setControl(currentUser.uid);
-          console.log(`${currentUser.displayName} is in control of the die`);
-        }
-      }
-    };
-
-    const handleMouseLeave = () => {
-      if (hovering) {
-        setHovering(false);
-        const currentUser = auth.currentUser;
-        if (control === currentUser.uid) {
-          setControl(null);
-          console.log(`${currentUser.displayName} is no longer in control of the die`);
-        }
-      }
-    };
-
-    const rollDie = () => {
-      const newValue = getDieValue();
-      setValue(newValue);
-      const currentUser = auth.currentUser;
-      if (control === currentUser.uid) {
-        const dieRef = push(ref(db, 'dice'));
-        update(dieRef, { value: newValue, control });
-      }
-    };
-
-    return (
-      <div
-        className="die"
-        style={{ left: x, top: y }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onClick={rollDie}
-      >
-        {value}
-      </div>
-    );
+  const handleMouseDown = () => {
+    if (isCurrentPlayer) {
+      setIsDragging(true);
+      update(ref(db, `rooms/${roomId}/dice`), { control: userId });
+    }
   };
 
+  const handleMouseUp = () => {
+    if (isCurrentPlayer) {
+      setIsDragging(false);
+      update(ref(db, `rooms/${roomId}/dice`), { control: null });
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (isCurrentPlayer && event.key === " ") {
+      onRoll();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isCurrentPlayer]);
+
+  const handleMouseMove = (event) => {
+    if (isDragging) {
+      update(ref(db, `rooms/${roomId}/dice`), {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+  };
+
+  return (
+    <div
+      style={{
+        display: "inline-block",
+        border: "1px solid black",
+        borderRadius: "50%",
+        width: "50px",
+        height: "50px",
+        backgroundColor: "white",
+        textAlign: "center",
+        lineHeight: "50px",
+        fontSize: "24px",
+        fontWeight: "bold",
+        position: "absolute",
+        top: `${y}px`,
+        left: `${x}px`,
+        cursor: isCurrentPlayer ? "move" : "default",
+        opacity: isCurrentPlayer ? 1 : 0.5,
+      }}
+      onMouseDown={handleMouseDown}
+    >
+      {value}
+    </div>
+  );
+};
 
 export default Die;
