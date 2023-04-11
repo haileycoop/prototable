@@ -4,12 +4,14 @@ import { db } from '../firebaseConfig';
 
 const Die = ({ roomId, dieData }) => {
   const [isHovering, setIsHovering] = useState(dieData?.isHovering || false);
+  const [dieValue, setDieValue] = useState(dieData?.value || 6);
 
   useEffect(() => {
     const dieRef = ref(db, `rooms/${roomId}/die`);
     const unsubscribe = onValue(dieRef, (snapshot) => {
       const data = snapshot.val();
       setIsHovering(data?.isHovering || false);
+      setDieValue(data?.value || 6);
     });
     return () => {
       unsubscribe();
@@ -28,6 +30,11 @@ const Die = ({ roomId, dieData }) => {
     // console.log(dieData);
   };
 
+  const handleMouseClick = () => {
+    const newValue = Math.floor(Math.random() * 6) + 1;
+    update(ref(db, `rooms/${roomId}/die`), { value: newValue });
+  };
+
   return (
     <div
       className="die"
@@ -36,10 +43,19 @@ const Die = ({ roomId, dieData }) => {
         height: '50px',
         border: '1px solid black',
         backgroundColor: isHovering ? '#ADD8E6' : 'white',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontSize: '24px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-    ></div>
+      onClick={handleMouseClick}
+    >
+      {dieValue}
+    </div>
   );
 };
 

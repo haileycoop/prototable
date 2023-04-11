@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
-import { ref, onValue, update } from 'firebase/database';
+import { set, ref, onValue, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
 import Die from './Die';
 
@@ -19,16 +19,25 @@ const Room = ({userId}) => {
 
   // Game piece management
 
-  const [dieData, setDieData] = useState({});
+  const [dieData, setDieData] = useState({ value: 6 });
 
   useEffect(() => {
+    // set the initial die value in the database if it doesn't exist
     const dieRef = ref(db, `rooms/${roomId}/die`);
-    const unsubscribe = onValue(dieRef, (snapshot) => {
-      setDieData(snapshot.val());
+    onValue(dieRef, (snapshot) => {
+      const dieValue = snapshot.child('dieValue').val();
+      if (dieValue === null) {
+        set(dieRef, { dieValue: 6 });
+      }
     });
-    return () => {
-      unsubscribe();
-    };
+
+    // listen for changes to the die object in the database and update the state
+    const dieDataRef = ref(db, `rooms/${roomId}/die`);
+    onValue(dieDataRef, (snapshot) => {
+      const data = snapshot.val();
+      setDieData(data || {});
+    });
+
   }, [roomId]);
 
   const handleDieHover = () => {
@@ -56,7 +65,7 @@ const Room = ({userId}) => {
         className="table"
           style={{ width: '80%', height: '80%', backgroundColor: '#2c3e50', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           {/* Spawn a die inside the table and pass in hover updates */},
-          <Die roomId={roomId} dieData={dieData} isHovered={dieData?.isHovering} handleHover={handleDieHover} handleLeave={handleDieLeave} />
+          {dieData && <Die roomId={roomId} dieData={dieData} isHovered={dieData.isHovering} handleHover={handleDieHover} handleLeave={handleDieLeave} value={dieData.dieValue} />}
       </div>
     </div>
   );
