@@ -54,7 +54,7 @@ const Room = ({userId}) => {
       {/* Create a table within the room */},
       <div
         className="table"
-          style={{ width: '80%', height: '80%', backgroundColor: '#2c3e50', position: 'relative' }} >
+          style={{ width: '80%', height: '80%', backgroundColor: '#2c3e50', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           {/* Spawn a die inside the table and pass in hover updates */},
           <Die roomId={roomId} dieData={dieData} isHovered={dieData?.isHovering} handleHover={handleDieHover} handleLeave={handleDieLeave} />
       </div>
