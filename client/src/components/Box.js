@@ -1,19 +1,30 @@
-import React, { useState } from 'react';
-import { ref, set } from 'firebase/database';
+import React, { useState, useEffect } from 'react';
+import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
 
 const Box = ({ roomId, boxData }) => {
-  const [isHovering, setIsHovering] = useState(false);
+  const [isHovering, setIsHovering] = useState(boxData?.isHovering || false);
+
+  useEffect(() => {
+    const boxRef = ref(db, `rooms/${roomId}/box`);
+    const unsubscribe = onValue(boxRef, (snapshot) => {
+      const data = snapshot.val();
+      setIsHovering(data?.isHovering || false);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [roomId]);
 
   const handleMouseEnter = () => {
     setIsHovering(true);
-    set(ref(db, `rooms/${roomId}/box`), { ...boxData, isHovering: true });
+    update(ref(db, `rooms/${roomId}/box`), { ...boxData, isHovering: true });
     // console.log(boxData);
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
-    set(ref(db, `rooms/${roomId}/box`), { ...boxData, isHovering: false });
+    update(ref(db, `rooms/${roomId}/box`), { ...boxData, isHovering: false });
     // console.log(boxData);
   };
 

@@ -32,11 +32,11 @@ const Room = ({userId}) => {
   }, [roomId]);
 
   const handleBoxHover = () => {
-    update(ref(db, `rooms/${roomId}/box`), { box: { isHovering: true }});
+    update(ref(db, `rooms/${roomId}/box/isHovering`), { box: { isHovering: true }});
   };
 
   const handleBoxLeave = () => {
-    update(ref(db, `rooms/${roomId}/box`), { box: { isHovering: false }});
+    update(ref(db, `rooms/${roomId}/box/isHovering`), { box: { isHovering: false }});
   };
 
   // Render the room
