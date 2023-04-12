@@ -49,86 +49,71 @@ const Room = ({userId}) => {
   };
 
   // Table management
-  const [tablePosition, setTablePosition] = useState({ x: 0, y: 0 });
-  const [initialMouseX, setInitialMouseX] = useState(null);
-  const [initialMouseY, setInitialMouseY] = useState(null);
-  const [initialTableX, setInitialTableX] = useState(null);
-  const [initialTableY, setInitialTableY] = useState(null);
-  const [isDragging, setIsDragging] = useState(false); // Add isDragging state
 
-  const handleTableMouseDown = (event) => {
-    setInitialMouseX(event.clientX);
-    setInitialMouseY(event.clientY);
-    setInitialTableX(tablePosition.x);
-    setInitialTableY(tablePosition.y);
-    setIsDragging(true); // Set isDragging to true
-
-    window.addEventListener('mousemove', handleTableMouseMove);
-    window.addEventListener('mouseup', handleTableMouseUp);
-  };
-
-  const handleTableMouseMove = (event) => {
-    if (isDragging) { // Only move the table if isDragging is true
-      const newTableX = initialTableX + (event.clientX - initialMouseX);
-      const newTableY = initialTableY + (event.clientY - initialMouseY);
-      setTablePosition({x: newTableX, y: newTableY});
-    }
-  };
-
-  const handleTableMouseUp = () => {
-    setIsDragging(false); // Set isDragging to false
-    window.removeEventListener('mousemove', handleTableMouseMove);
-    window.removeEventListener('mouseup', handleTableMouseUp);
-  };
+    const [roomSpaceSize] = useState({ width: 1200, height: 1200 });
+    const [tableSize] = useState({ width: 800, height: 800 });
 
 
   // Render the room
 
   return (
     {/* Create a room space within which everything else sits */},
-    <div className="room-space"
-      style={{ width: '1200px', height: '1200px', position: 'relative' }}>
-      
-      {/* Create a container to manage menus within the room-space */},
-      
-      <div className="menu-container"
-          style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: '2', pointerEvents: 'none' }}>
-          
-        {/* Create a container for a menu at the top */},
-        <div className="top-menu"
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '50px', backgroundColor: '#3d3d3d', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pointerEvents: 'auto' }}>
+     <div
+      className="room-space-wrapper"
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100vw',
+        height: '100vh',
+    }}
+    >
+      <div className="room-space"
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: `${roomSpaceSize.width}px`,
+            height: `${roomSpaceSize.height}px`,
+            position: 'relative',
+            border: '1px solid gray'
+          }}>
+        
+        {/* Create a container to manage menus within the room-space */},
+        
+        <div className="menu-container"
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: '2', pointerEvents: 'none' }}>
+            
+          {/* Create a container for a menu at the top */},
+          <div className="top-menu"
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '50px', backgroundColor: '#3d3d3d', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pointerEvents: 'auto' }}>
 
-          {/* Add top menu items here */}, 
-          <div className="room-id" style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', width: '100%', margin: '10px 10px 10px 10px', pointerEvents: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid gray', padding: '4px 8px' }}> {/* Add this new container */}
-              <p style={{ color: 'white', margin: 0 }}>Room ID:</p>
-              <p style={{ margin: '0 10px', padding: '2px 4px', color: 'white' }} >{roomId}</p>
-              <button onClick={handleCopyClick}>{idCopied ? 'Copied!' : 'Copy'}</button>
+            {/* Add top menu items here */}, 
+            <div className="room-id" style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', width: '100%', margin: '10px 10px 10px 10px', pointerEvents: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid gray', padding: '4px 8px' }}> {/* Add this new container */}
+                <p style={{ color: 'white', margin: 0 }}>Room ID:</p>
+                <p style={{ margin: '0 10px', padding: '2px 4px', color: 'white' }} >{roomId}</p>
+                <button onClick={handleCopyClick}>{idCopied ? 'Copied!' : 'Copy'}</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Create a table within the room-space */},
-      <div className="table"
-        style={{
-          position: 'absolute',
-          left: `${tablePosition.x}px`,
-          top: `${tablePosition.y}px`,
-          width: '800px',
-          height: '800px',
-          backgroundColor: '#2c3e50',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: '1'
-        }}
-          onMouseDown={handleTableMouseDown}
-          onMouseUp={handleTableMouseUp}
-          onMouseMove={handleTableMouseMove}
-        >
-        {/* Spawn a die inside the table and pass in hover updates */}
-        {dieData && <Die roomId={roomId} dieData={dieData} isHovered={dieData.isHovering} handleHover={handleDieHover} handleLeave={handleDieLeave} value={dieData.dieValue} />}
+        
+        {/* Create a table within the room-space */},
+        <div className="table"
+          style={{
+            width: `${tableSize.width}px`,
+            height: `${tableSize.height}px`,
+            backgroundColor: '#2c3e50',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: '1'
+          }}
+          >
+          {/* Spawn a die inside the table and pass in hover updates */}
+          {dieData && <Die roomId={roomId} dieData={dieData} isHovered={dieData.isHovering} handleHover={handleDieHover} handleLeave={handleDieLeave} value={dieData.dieValue} />}
+        </div>
       </div>
     </div>
     );
