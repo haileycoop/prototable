@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
 
-const Die = ({ roomId, dieData, tableSize }) => {
+const Die = ({ roomId, dieData, tableSize, tableOffset }) => {
   const [isHovering, setIsHovering] = useState(dieData?.isHovering || false);
   const [dieValue, setDieValue] = useState(dieData?.value || 6);
   const [isDragging, setIsDragging] = useState(false);
@@ -42,16 +42,15 @@ const Die = ({ roomId, dieData, tableSize }) => {
       if (!isDragging) return;
 
       const dieRect = dieRef.current.getBoundingClientRect();
-      const tableRect = dieRef.current.parentNode.getBoundingClientRect();
-      const newX = e.clientX - tableRect.left - cursorOffset.x;
-      const newY = e.clientY - tableRect.top - cursorOffset.y;
+      const newX = e.clientX - tableOffset.left - cursorOffset.x;
+      const newY = e.clientY - tableOffset.top - cursorOffset.y;
 
       // Check if the die is within table boundaries
       if (
         newX >= 0 &&
-        newX + dieRect.width <= tableRect.width &&
+        newX + dieRect.width <= tableSize.width &&
         newY >= 0 &&
-        newY + dieRect.height <= tableRect.height
+        newY + dieRect.height <= tableSize.height
       ) {
         setDiePosition({ x: newX, y: newY });
       }
@@ -59,7 +58,7 @@ const Die = ({ roomId, dieData, tableSize }) => {
       // Update the die position in the database
       update(ref(db, `rooms/${roomId}/die`), { position: { x: newX, y: newY } });
   
-    }, [cursorOffset, isDragging, roomId]);
+    }, [cursorOffset, isDragging, roomId, tableOffset, tableSize]);
 
   const handleMouseUp = useCallback (() => {
       setIsDragging(false);

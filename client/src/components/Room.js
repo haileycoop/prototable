@@ -5,8 +5,8 @@ import { db } from '../firebaseConfig';
 import Die from './Die';
 
 const Room = ({userId}) => {
-
-  // Room ID copy feature - handle parameters and set click function
+  // Room space and menu setup
+  const [roomSpaceSize] = useState({ width: 1200, height: 1200 });
   const { roomId } = useParams();
   const [idCopied, setIdCopied] = useState(false);  
   const handleCopyClick = () => {
@@ -17,17 +17,21 @@ const Room = ({userId}) => {
   }, 3000);
   };
 
-  // Game piece management
+  // Table setup
+  const [tableSize] = useState({ width: 800, height: 800 });
 
-  const [dieData, setDieData] = useState({ value: 6 });
+  // Game piece setup
+
+  const [dieData, setDieData] = useState({ value: 6, position: { x: 0, y: 0 }});
 
   useEffect(() => {
     // set the initial die value in the database if it doesn't exist
     const dieRef = ref(db, `rooms/${roomId}/die`);
     onValue(dieRef, (snapshot) => {
       const dieValue = snapshot.child('value').val();
-      if (dieValue === null) {
-        set(dieRef, { value: 6 });
+      const diePosition = snapshot.child('position').val();
+      if (dieValue === null || diePosition === null) {
+        set(dieRef, { value: 6, position: { x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 } });
       }
     });
 
@@ -38,7 +42,7 @@ const Room = ({userId}) => {
       setDieData(data || {});
     });
 
-  }, [roomId]);
+  }, [roomId, tableSize]);
 
   const handleDieHover = () => {
     update(ref(db, `rooms/${roomId}/die/isHovering`), { die: { isHovering: true }});
@@ -48,16 +52,11 @@ const Room = ({userId}) => {
     update(ref(db, `rooms/${roomId}/die/isHovering`), { die: { isHovering: false }});
   };
 
-  // Table management
-
-    const [roomSpaceSize] = useState({ width: 1200, height: 1200 });
-    const [tableSize] = useState({ width: 800, height: 800 });
-
 
   // Render the room
 
   return (
-    {/* Create a room space within which everything else sits */},
+    // Create a room space within which everything else sits
      <div
       className="room-space-wrapper"
       style={{
@@ -79,12 +78,12 @@ const Room = ({userId}) => {
             border: '1px solid gray'
           }}>
         
-        {/* Create a container to manage menus within the room-space */},
+        {/* Create a container to manage menus within the room-space */}
         
         <div className="menu-container"
             style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: '2', pointerEvents: 'none' }}>
             
-          {/* Create a container for a menu at the top */},
+          {/* Create a container for a menu at the top */}
           <div className="top-menu"
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '50px', backgroundColor: '#3d3d3d', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', pointerEvents: 'auto' }}>
 
@@ -99,7 +98,7 @@ const Room = ({userId}) => {
           </div>
         </div>
         
-        {/* Create a table within the room-space */},
+        {/* Create a table within the room-space */}
         <div className="table"
           style={{
             width: `${tableSize.width}px`,
@@ -120,7 +119,12 @@ const Room = ({userId}) => {
                 isHovered={dieData.isHovering}
                 handleHover={handleDieHover}
                 handleLeave={handleDieLeave}
-                value={dieData.dieValue}
+                value={dieData.value}
+                position={dieData.position}
+                tableOffset={{
+                  left: document.querySelector('.table')?.offsetLeft || 0,
+                  top: document.querySelector('.table')?.offsetTop || 0,
+                }}
               />
             )}
         </div>
