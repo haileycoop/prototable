@@ -5,7 +5,9 @@ import { db } from '../firebaseConfig';
 const Die = ({ roomId, dieData, tableSize, tableRef }) => {
   const [dieValue, setDieValue] = useState(dieData?.value || 6);
   const [diePosition, setDiePosition] = useState({ x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 });
+  const [isHovering, setIsHovering] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [hasMoved, setHasMoved] = useState(false);
   const [cursorOffset, setCursorOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -14,6 +16,7 @@ const Die = ({ roomId, dieData, tableSize, tableRef }) => {
       const data = snapshot.val();
       setDieValue(data?.value || 6);
       setDiePosition(data?.position || { x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 });
+      setIsHovering(data?.isHovering || false);
     });
     return () => {
       unsubscribe();
@@ -32,16 +35,14 @@ const Die = ({ roomId, dieData, tableSize, tableRef }) => {
   const drawDie = useCallback(() => {
     if (tableRef.current) {
       const ctx = tableRef.current.getContext('2d');
-      console.log('Context:', ctx);
       ctx.clearRect(0, 0, tableSize.width, tableSize.height);
-      ctx.fillStyle = 'white';
+      ctx.fillStyle = isHovering ? 'lightblue' : 'white';
       ctx.fillRect(diePosition.x, diePosition.y, 50, 50);
       ctx.font = '24px Arial';
       ctx.fillStyle = 'black';
       ctx.fillText(dieValue, diePosition.x + 20, diePosition.y + 30);
-      console.log('Die drawn at:', diePosition);
     }
-  }, [diePosition, dieValue, tableSize, tableRef]);
+  }, [diePosition, dieValue, tableSize, tableRef, isHovering]);
 
   useEffect(() => {
     drawDie();
@@ -65,25 +66,60 @@ const Die = ({ roomId, dieData, tableSize, tableRef }) => {
 
 
   const handleMouseMove = useCallback(
-    (e) => {
-      if (!isDragging) return;
+  (e) => {
+    const rect = tableRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-      const rect = tableRef.current.getBoundingClientRect();
-      const newX = e.clientX - rect.left - cursorOffset.x;
-      const newY = e.clientY - rect.top - cursorOffset.y;
+    const isHoveringNow =
+      x >= diePosition.x &&
+      x <= diePosition.x + 50 &&
+      y >= diePosition.y &&
+      y <= diePosition.y + 50;
 
-      setDiePosition({ x: newX, y: newY });
-      update(ref(db, `rooms/${roomId}/die`), { position: { x: newX, y: newY } });
-    },
-    [cursorOffset, isDragging, roomId, tableRef]
-  );
+    if (isHoveringNow !== isHovering) {
+      setIsHovering(isHoveringNow);
+      update(ref(db, `rooms/${roomId}/die`), { isHovering: isHoveringNow });
+    }
 
-    const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
+    if (!isDragging) return;
+
+    setHasMoved(true);
+
+    const newX = x - cursorOffset.x;
+    const newY = y - cursorOffset.y;
+
+    setDiePosition({ x: newX, y: newY });
+    update(ref(db, `rooms/${roomId}/die`), { position: { x: newX, y: newY } });
+  },
+  [cursorOffset, isDragging, roomId, tableRef, diePosition, isHovering]
+);
+
+  const rollDie = useCallback(() => {
     const newValue = Math.floor(Math.random() * 6) + 1;
     setDieValue(newValue);
     update(ref(db, `rooms/${roomId}/die`), { value: newValue });
   }, [roomId]);
+
+  const handleMouseUp = useCallback((e) => {
+    setIsDragging(false);
+
+    const rect = tableRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (
+      !hasMoved &&
+      x >= diePosition.x &&
+      x <= diePosition.x + 50 &&
+      y >= diePosition.y &&
+      y <= diePosition.y + 50
+    ) {
+      rollDie();
+    }
+
+    setHasMoved(false);
+  }, [diePosition, hasMoved, rollDie, tableRef]);
 
   useEffect(() => {
     const canvas = tableRef.current;
