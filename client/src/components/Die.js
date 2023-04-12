@@ -1,20 +1,17 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
 
-const Die = ({ roomId, dieData, tableSize, tableOffset }) => {
-  const [isHovering, setIsHovering] = useState(dieData?.isHovering || false);
+const Die = ({ roomId, dieData, tableSize, tableRef }) => {
   const [dieValue, setDieValue] = useState(dieData?.value || 6);
-  const [isDragging, setIsDragging] = useState(false);
   const [diePosition, setDiePosition] = useState({ x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 });
-  const dieRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [cursorOffset, setCursorOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const dieRef = ref(db, `rooms/${roomId}/die`);
     const unsubscribe = onValue(dieRef, (snapshot) => {
       const data = snapshot.val();
-      setIsHovering(data?.isHovering || false);
       setDieValue(data?.value || 6);
       setDiePosition(data?.position || { x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 });
     });
@@ -23,96 +20,87 @@ const Die = ({ roomId, dieData, tableSize, tableOffset }) => {
     };
   }, [roomId, tableSize]);
 
-  const handleMouseEnter = () => {
-    setIsHovering(true);
-    update(ref(db, `rooms/${roomId}/die`), { ...dieData, isHovering: true });
-    // console.log(dieData);
-  };
+  useEffect(() => {
+    const dieRef = ref(db, `rooms/${roomId}/die`);
+    const dieData = {
+      position: { x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 },
+      value: 6,
+    };
+    update(dieRef, dieData);
+  }, [roomId, tableSize]);
 
-  const handleMouseDown = (e) => {
-    const dieRect = dieRef.current.getBoundingClientRect();
-    setCursorOffset({
-      x: e.clientX - dieRect.left,
-      y: e.clientY - dieRect.top,
-  });
+  const drawDie = useCallback(() => {
+    if (tableRef.current) {
+      const ctx = tableRef.current.getContext('2d');
+      console.log('Context:', ctx);
+      ctx.clearRect(0, 0, tableSize.width, tableSize.height);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(diePosition.x, diePosition.y, 50, 50);
+      ctx.font = '24px Arial';
+      ctx.fillStyle = 'black';
+      ctx.fillText(dieValue, diePosition.x + 20, diePosition.y + 30);
+      console.log('Die drawn at:', diePosition);
+    }
+  }, [diePosition, dieValue, tableSize, tableRef]);
+
+  useEffect(() => {
+    drawDie();
+  }, [drawDie]);
+
+  const handleMouseDown = useCallback((e) => {
+  const rect = tableRef.current.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  if (
+    x >= diePosition.x &&
+    x <= diePosition.x + 50 &&
+    y >= diePosition.y &&
+    y <= diePosition.y + 50
+  ) {
     setIsDragging(true);
-  };
+    setCursorOffset({ x: x - diePosition.x, y: y - diePosition.y });
+  }
+}, [diePosition, tableRef]);
 
-  const handleMouseMove = useCallback ((e) => {
+
+  const handleMouseMove = useCallback(
+    (e) => {
       if (!isDragging) return;
 
-      const dieRect = dieRef.current.getBoundingClientRect();
-      const newX = e.clientX - tableOffset.left - cursorOffset.x;
-      const newY = e.clientY - tableOffset.top - cursorOffset.y;
+      const rect = tableRef.current.getBoundingClientRect();
+      const newX = e.clientX - rect.left - cursorOffset.x;
+      const newY = e.clientY - rect.top - cursorOffset.y;
 
-      // Check if the die is within table boundaries
-      if (
-        newX >= 0 &&
-        newX + dieRect.width <= tableSize.width &&
-        newY >= 0 &&
-        newY + dieRect.height <= tableSize.height
-      ) {
-        setDiePosition({ x: newX, y: newY });
-      }
-      
-      // Update the die position in the database
+      setDiePosition({ x: newX, y: newY });
       update(ref(db, `rooms/${roomId}/die`), { position: { x: newX, y: newY } });
-  
-    }, [cursorOffset, isDragging, roomId, tableOffset, tableSize]);
-
-  const handleMouseUp = useCallback (() => {
-      setIsDragging(false);
-      const newValue = Math.floor(Math.random() * 6) + 1;
-      update(ref(db, `rooms/${roomId}/die`), { value: newValue });
-    }, [roomId]);
-  
-  const handleMouseLeave = () => {
-    setIsHovering(false);
-    update(ref(db, `rooms/${roomId}/die`), { ...dieData, isHovering: false });
-    // console.log(dieData);
-  };
-
-  // Listen for events
-  useEffect(() => {
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [roomId, isDragging, handleMouseMove, handleMouseUp]);
-
-
-  return (
-    <div
-      className="die"
-      style={{
-        position: 'absolute',
-        left: `${diePosition.x}px`,
-        top: `${diePosition.y}px`,
-        width: '50px',
-        height: '50px',
-        border: '1px solid black',
-        backgroundColor: isHovering ? '#ADD8E6' : 'white',
-        borderRadius: '5px',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        cursor: 'pointer',
-      }}
-      ref={dieRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseDown={handleMouseDown}
-      onMouseLeave={handleMouseLeave}
-      onMouseUp={handleMouseUp}
-    >
-      {dieValue}
-    </div>
+    },
+    [cursorOffset, isDragging, roomId, tableRef]
   );
+
+    const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    const newValue = Math.floor(Math.random() * 6) + 1;
+    setDieValue(newValue);
+    update(ref(db, `rooms/${roomId}/die`), { value: newValue });
+  }, [roomId]);
+
+  useEffect(() => {
+    const canvas = tableRef.current;
+    if (canvas) {
+      canvas.addEventListener('mousedown', handleMouseDown);
+      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener('mousedown', handleMouseDown);
+        canvas.removeEventListener('mousemove', handleMouseMove);
+        canvas.removeEventListener('mouseup', handleMouseUp);
+      }
+    };
+  }, [handleMouseDown, handleMouseMove, handleMouseUp, tableRef]);
+
 };
 
 export default Die;

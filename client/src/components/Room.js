@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from "react-router-dom";
 import { set, ref, onValue, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
@@ -19,6 +19,8 @@ const Room = ({userId}) => {
 
   // Table setup
   const [tableSize] = useState({ width: 800, height: 800 });
+  const tableRef = useRef(null);
+
 
   // Game piece setup
 
@@ -99,35 +101,29 @@ const Room = ({userId}) => {
         </div>
         
         {/* Create a table within the room-space */}
-        <div className="table"
+        <canvas
+          ref={tableRef}
+          width={tableSize.width}
+          height={tableSize.height}
           style={{
-            width: `${tableSize.width}px`,
-            height: `${tableSize.height}px`,
-            backgroundColor: '#2c3e50',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: '1'
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: "1",
           }}
-          >
+        />
+
           {/* Spawn a die inside the table and pass in hover updates */}
-            {dieData && (
-              <Die
-                roomId={roomId}
-                dieData={dieData}
-                tableSize={tableSize}
-                isHovered={dieData.isHovering}
-                handleHover={handleDieHover}
-                handleLeave={handleDieLeave}
-                value={dieData.value}
-                position={dieData.position}
-                tableOffset={{
-                  left: document.querySelector('.table')?.offsetLeft || 0,
-                  top: document.querySelector('.table')?.offsetTop || 0,
-                }}
-              />
-            )}
-        </div>
+            <Die
+              roomId={roomId}
+              dieData={dieData}
+              tableSize={tableSize}
+              tableRef={tableRef}
+              isHovered={dieData.isHovering}
+              handleHover={handleDieHover}
+              handleLeave={handleDieLeave}
+            />
       </div>
     </div>
     );
