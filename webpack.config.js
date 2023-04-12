@@ -45,7 +45,6 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './client/public/index.html',
       filename: 'index.html',
-      publicPath: '.',
       inject: true,
     }),
   ]
