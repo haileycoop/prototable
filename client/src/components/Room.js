@@ -25,9 +25,9 @@ const Room = ({userId}) => {
     // set the initial die value in the database if it doesn't exist
     const dieRef = ref(db, `rooms/${roomId}/die`);
     onValue(dieRef, (snapshot) => {
-      const dieValue = snapshot.child('dieValue').val();
+      const dieValue = snapshot.child('value').val();
       if (dieValue === null) {
-        set(dieRef, { dieValue: 6 });
+        set(dieRef, { value: 6 });
       }
     });
 
