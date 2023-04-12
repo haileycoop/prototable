@@ -112,7 +112,17 @@ const Room = ({userId}) => {
           }}
           >
           {/* Spawn a die inside the table and pass in hover updates */}
-          {dieData && <Die roomId={roomId} dieData={dieData} isHovered={dieData.isHovering} handleHover={handleDieHover} handleLeave={handleDieLeave} value={dieData.dieValue} />}
+            {dieData && (
+              <Die
+                roomId={roomId}
+                dieData={dieData}
+                tableSize={tableSize}
+                isHovered={dieData.isHovering}
+                handleHover={handleDieHover}
+                handleLeave={handleDieLeave}
+                value={dieData.dieValue}
+              />
+            )}
         </div>
       </div>
     </div>
