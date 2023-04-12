@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { app, auth, db } from "./firebaseConfig";
-import { ref, get, set, push } from "firebase/database";
+import { ref, get, set, push, update } from "firebase/database";
 import { useNavigate } from "react-router-dom";
 
 function RoomForm() {
@@ -24,6 +24,14 @@ function RoomForm() {
       const roomRef = push(roomsRef, { name: roomName, password: roomPassword });
       const roomId = roomRef.key;
 
+      // Set the initial state of the die and table
+      const tableSize = { width: 800, height: 800 };
+      const initialDieData = {
+        position: { x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 },
+        value: 6,
+        isHovering: false,
+      };
+      await update(ref(db, `rooms/${roomId}/die`), initialDieData);
 
       // Add the user ID to the "players" subcollection of the new room
       const playersRef = ref(db, `rooms/${roomId}/players/${userId}`);

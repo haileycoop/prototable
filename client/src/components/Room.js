@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from "react-router-dom";
-import { set, ref, onValue, update } from 'firebase/database';
+import { ref, onValue, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
 import Die from './Die';
 
@@ -27,16 +27,6 @@ const Room = ({userId}) => {
   const [dieData, setDieData] = useState({ value: 6, position: { x: 0, y: 0 }});
 
   useEffect(() => {
-    // set the initial die value in the database if it doesn't exist
-    const dieRef = ref(db, `rooms/${roomId}/die`);
-    onValue(dieRef, (snapshot) => {
-      const dieValue = snapshot.child('value').val();
-      const diePosition = snapshot.child('position').val();
-      if (dieValue === null || diePosition === null) {
-        set(dieRef, { value: 6, position: { x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 } });
-      }
-    });
-
     // listen for changes to the die object in the database and update the state
     const dieDataRef = ref(db, `rooms/${roomId}/die`);
     onValue(dieDataRef, (snapshot) => {

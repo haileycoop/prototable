@@ -23,15 +23,6 @@ const Die = ({ roomId, dieData, tableSize, tableRef }) => {
     };
   }, [roomId, tableSize]);
 
-  useEffect(() => {
-    const dieRef = ref(db, `rooms/${roomId}/die`);
-    const dieData = {
-      position: { x: (tableSize.width - 50) / 2, y: (tableSize.height - 50) / 2 },
-      value: 6,
-    };
-    update(dieRef, dieData);
-  }, [roomId, tableSize]);
-
   const drawDie = useCallback(() => {
     if (tableRef.current) {
       const ctx = tableRef.current.getContext('2d');
