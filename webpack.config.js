@@ -1,8 +1,8 @@
 const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
-const path = require('path');
 
 module.exports = {
+  entry: './client/src/index.js',
   resolve: {
     fallback: {
       fs: false, // or require.resolve("browserify-fs")
@@ -21,6 +21,10 @@ module.exports = {
             presets: ["@babel/preset-env", "@babel/preset-react"]
           }
         }
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"],
       }
     ]
   },
@@ -28,7 +32,9 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env': JSON.stringify(process.env)
     }),
-    new Dotenv(),
-    new path()
+    new webpack.ProvidePlugin({ path: 'path-browserify' }),
+    new Dotenv({
+      path: './client/.env'
+    }),
   ]
 };
