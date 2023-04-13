@@ -128,6 +128,7 @@ const Die = ({ roomId, dieData, tableSize, tableRef }) => {
     };
   }, [handleMouseDown, handleMouseMove, handleMouseUp, tableRef]);
 
+  return <div />;
 };
 
 export default Die;

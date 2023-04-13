@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom";
 import App from "./App";
 import { app } from "./firebaseConfig";
 
@@ -15,4 +15,4 @@ function Root() {
   return firebaseReady ? <App /> : <p>Loading...</p>;
 }
 
-createRoot(document.getElementById("root")).render(<Root />);
+ReactDOM.render(<Root />, document.getElementById("root"));
